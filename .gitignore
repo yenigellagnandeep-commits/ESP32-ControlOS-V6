@@ -1,0 +1,13 @@
+# Keep private Wi-Fi credentials out of Git.
+config.local.h
+
+# Arduino and PlatformIO build output.
+build/
+.pio/
+*.elf
+*.bin
+*.map
+
+# Local editor and operating-system files.
+.vscode/
+.DS_Store
