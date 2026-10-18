@@ -1,0 +1,28 @@
+name: ESP32 firmware build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    name: Compile ESP32 sketch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: arduino/compile-sketches@v1
+        with:
+          fqbn: espressif:esp32:esp32
+          platforms: |
+            - name: espressif:esp32
+              source-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          libraries: "[]"
+          sketch-paths: |
+            - .
+          enable-warnings-report: true
