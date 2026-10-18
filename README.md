@@ -14,6 +14,7 @@ A private, local dashboard for monitoring and controlling an ESP32 board. It run
 
 ## Hardware
 
+- **Physical test board:** ESP32 DevKit V1.
 - An ESP32 board supported by the Espressif Arduino core.
 - A USB cable for setup and uploading.
 
@@ -80,11 +81,11 @@ The firmware does not send device readings to a cloud service. The nearby networ
 
 ## Build check
 
-GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to main and pushes to main. A passing build confirms that the sketch compiles for that target. Check LED behavior and other board-specific features on the actual ESP32 before relying on them.
+GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to main and pushes to main. The project-owner hardware test used an **ESP32 DevKit V1**. A passing build confirms that the sketch compiles for the automated target; board-specific features should still be checked on the physical board.
 
 ## Hardware verification
 
-**Project-owner hardware test (2026-10-18):** The firmware was uploaded and run on a physical ESP32. The screenshots below were captured during that session and document the pages and readings visible at the time. They do not establish that every control was independently tested.
+**Project-owner hardware test (2026-10-18):** The firmware was uploaded and run on a physical ESP32 DevKit V1. The screenshots below were captured during that session and document the pages and readings visible at the time. They do not establish that every control was independently tested.
 
 > **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
 
