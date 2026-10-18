@@ -37,6 +37,10 @@ The example file intentionally contains a placeholder password. If you forget to
 5. Open Serial Monitor at **115200 baud**. It prints the access point name and local address, but never prints the passphrase.
 6. Connect your phone or computer to the ESP32 Wi-Fi network and visit [http://192.168.4.1](http://192.168.4.1).
 
+### Optional single-file sketch
+
+`single-file/ESP32-ControlOS-V6-SingleFile/ESP32-ControlOS-V6-SingleFile.ino` is available if you prefer one sketch file. Open the `single-file/ESP32-ControlOS-V6-SingleFile` folder in Arduino IDE, then replace the SSID and password constants near the top before uploading. The committed password is a placeholder, and the access point will not start until you set a private WPA2 passphrase that is 8 to 63 characters long.
+
 The ESP32 creates its own password-protected Wi-Fi network. It does not connect to your home router or to the networks shown by the scan page. While connected to the ESP32 network, your phone or computer may show that there is no internet connection; that is expected.
 
 ## Pages and routes
@@ -77,6 +81,40 @@ The firmware does not send device readings to a cloud service. The nearby networ
 ## Build check
 
 GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to main and pushes to main. A passing build confirms that the sketch compiles for that target. Check LED behavior and other board-specific features on the actual ESP32 before relying on them.
+
+## Hardware verification
+
+**Project-owner hardware test (2026-10-18):** The firmware was uploaded and run on a physical ESP32. The screenshots below were captured during that session and document the pages and readings visible at the time. They do not establish that every control was independently tested.
+
+> **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
+
+### Dashboard
+
+![ESP32 dashboard with live readings and LED controls](docs/screenshots/01-dashboard.png)
+
+### Nearby Wi-Fi scan
+
+![Nearby Wi-Fi scan showing network names, signal strength, channels, and security](docs/screenshots/02-wifi-scan.png)
+
+### Device details
+
+![ESP32 device details and hardware readings](docs/screenshots/03-device-details.png)
+
+### Recent history
+
+![Chart of ESP32 memory and connected-client readings](docs/screenshots/04-history.png)
+
+### Recent logs
+
+![Table of ESP32 uptime, free-memory, and connected-client samples](docs/screenshots/05-logs.png)
+
+### Settings
+
+![ESP32 settings page with the device restart control](docs/screenshots/06-settings.png)
+
+### About
+
+![About page describing ESP32 ControlOS features and privacy](docs/screenshots/07-about.png)
 
 ## License
 

@@ -8,7 +8,7 @@
 // Single-file Wi-Fi configuration: no extra config headers required.
 // Change these values before uploading, especially the password.
 #define CONTROL_OS_WIFI_SSID "My_ControlOS"
-#define CONTROL_OS_WIFI_PASSWORD "ControlOS-826-ChangeMe"
+#define CONTROL_OS_WIFI_PASSWORD "CHANGE_ME_PRIVATE_PASSWORD"
 
 #ifndef CONTROL_OS_LED_PIN
 #define CONTROL_OS_LED_PIN 2
@@ -22,7 +22,7 @@ namespace
 {
 constexpr uint32_t kSampleIntervalMs = 5000UL;
 constexpr size_t kLogCapacity = 100;
-constexpr char kPlaceholderPassword[] = "";
+constexpr char kPlaceholderPassword[] = "CHANGE_ME_PRIVATE_PASSWORD";
 constexpr uint8_t kLedPin = CONTROL_OS_LED_PIN;
 constexpr bool kLedActiveLow = CONTROL_OS_LED_ACTIVE_LOW != 0;
 
@@ -95,7 +95,7 @@ bool hasValidAccessPointConfig()
   const size_t passwordLength = strlen(kAccessPointPassword);
 
   return ssidLength > 0 && ssidLength <= 32 &&
-         kAccessPointPassword[0] != '\0' &&
+         strcmp(kAccessPointPassword, kPlaceholderPassword) != 0 &&
          passwordLength >= 8 && passwordLength <= 63;
 }
 
@@ -314,11 +314,35 @@ String pageFooter()
   <footer class="footer">
     ESP32 ControlOS · Built by Gnandeep Yenigella · Arduino C++
   </footer>
+  <script>
+  (() => {
+    const badge = document.getElementById('connection-status');
+    if (!badge || document.getElementById('free-heap')) return;
+
+    async function refreshConnection() {
+      try {
+        const response = await fetch('/status', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Status request failed');
+        const status = await response.json();
+        if (!Number.isFinite(status.uptime_seconds)) {
+          throw new Error('Status response was incomplete');
+        }
+        badge.dataset.state = 'online';
+        badge.textContent = 'ESP32 connected';
+      } catch (error) {
+        badge.dataset.state = 'offline';
+        badge.textContent = 'Waiting for ESP32';
+      }
+    }
+
+    refreshConnection();
+    window.setInterval(refreshConnection, 5000);
+  })();
+  </script>
 </body>
 </html>
 )HTML");
 }
-
 String metricCard(const char* label, const char* id, const char* unit)
 {
   String card;
@@ -582,16 +606,6 @@ void settingsPage()
 )HTML");
   page += pageFooter();
   sendPage(page);
-}
-
-String svgTextElement(const char* text)
-{
-  String markup;
-  markup.reserve(150);
-  markup += F("<text x=\"380\" y=\"150\" text-anchor=\"middle\" fill=\"#a9b8cd\" font-size=\"14\">");
-  markup += text;
-  markup += F("</text>");
-  return markup;
 }
 
 void chartsPage()

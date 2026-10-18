@@ -323,11 +323,35 @@ String pageFooter()
   <footer class="footer">
     ESP32 ControlOS · Built by Gnandeep Yenigella · Arduino C++
   </footer>
+  <script>
+  (() => {
+    const badge = document.getElementById('connection-status');
+    if (!badge || document.getElementById('free-heap')) return;
+
+    async function refreshConnection() {
+      try {
+        const response = await fetch('/status', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Status request failed');
+        const status = await response.json();
+        if (!Number.isFinite(status.uptime_seconds)) {
+          throw new Error('Status response was incomplete');
+        }
+        badge.dataset.state = 'online';
+        badge.textContent = 'ESP32 connected';
+      } catch (error) {
+        badge.dataset.state = 'offline';
+        badge.textContent = 'Waiting for ESP32';
+      }
+    }
+
+    refreshConnection();
+    window.setInterval(refreshConnection, 5000);
+  })();
+  </script>
 </body>
 </html>
 )HTML");
 }
-
 String metricCard(const char* label, const char* id, const char* unit)
 {
   String card;
@@ -591,16 +615,6 @@ void settingsPage()
 )HTML");
   page += pageFooter();
   sendPage(page);
-}
-
-String svgTextElement(const char* text)
-{
-  String markup;
-  markup.reserve(150);
-  markup += F("<text x=\"380\" y=\"150\" text-anchor=\"middle\" fill=\"#a9b8cd\" font-size=\"14\">");
-  markup += text;
-  markup += F("</text>");
-  return markup;
 }
 
 void chartsPage()
