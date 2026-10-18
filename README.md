@@ -63,7 +63,7 @@ The ESP32 keeps up to 100 samples in memory, normally one sample every five seco
 
 ## Safety and privacy
 
-The access point password is the only access gate. Anyone connected to that network can use the LED and restart controls, so share its password only with people you trust. Do not reuse your home Wi-Fi password.
+The WPA2 access point is the network access gate. State-changing forms also use a random token created at boot to help block cross-site form submissions. Anyone connected to the access point can still load the dashboard and use its controls, so share its password only with people you trust. Do not reuse your home Wi-Fi password.
 
 The firmware does not send device readings to a cloud service. The nearby network scan displays names and radio measurements only on the local dashboard.
 

@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_timer.h>
+#include <esp_random.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -51,6 +52,7 @@ size_t logCount = 0;
 uint32_t lastSampleMillis = 0;
 bool serverReady = false;
 bool ledIsOn = false;
+String controlToken;
 
 uint64_t uptimeSeconds()
 {
@@ -111,6 +113,49 @@ void setLed(bool on)
   ledIsOn = on;
   const bool outputHigh = kLedActiveLow ? !on : on;
   digitalWrite(kLedPin, outputHigh ? HIGH : LOW);
+}
+
+String createControlToken()
+{
+  char token[33];
+  const uint8_t randomBytes[16] = {
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random()),
+    static_cast<uint8_t>(esp_random()), static_cast<uint8_t>(esp_random())
+  };
+
+  for (size_t index = 0; index < sizeof(randomBytes); ++index)
+  {
+    snprintf(token + index * 2, sizeof(token) - index * 2, "%02x",
+             static_cast<unsigned int>(randomBytes[index]));
+  }
+  return String(token);
+}
+
+String controlTokenField()
+{
+  String field;
+  field.reserve(100);
+  field += F("<input type=\"hidden\" name=\"token\" value=\"");
+  field += controlToken;
+  field += F("\">");
+  return field;
+}
+
+bool hasValidControlToken()
+{
+  return server.hasArg("token") && server.arg("token") == controlToken;
+}
+
+void rejectInvalidControlRequest()
+{
+  server.send(403, "text/plain; charset=utf-8",
+              "This control request is invalid. Reload the page and try again.");
 }
 
 String escapeHtml(const String& input)
@@ -330,8 +375,12 @@ void dashboardPage()
       <h2 id="led-heading">Built-in LED</h2>
       <p>Current state: <strong id="led-state">—</strong></p>
       <div class="actions">
-        <form method="post" action="/on"><button class="button button-green" type="submit">Turn LED on</button></form>
-        <form method="post" action="/off"><button class="button button-red" type="submit">Turn LED off</button></form>
+        <form method="post" action="/on">)HTML");
+  page += controlTokenField();
+  page += F(R"HTML(<button class="button button-green" type="submit">Turn LED on</button></form>
+        <form method="post" action="/off">)HTML");
+  page += controlTokenField();
+  page += F(R"HTML(<button class="button button-red" type="submit">Turn LED off</button></form>
       </div>
       <p class="muted">The LED pin and polarity depend on the ESP32 board. See the setup guide if it does not respond.</p>
     </section>
@@ -530,8 +579,9 @@ void settingsPage()
     <section class="card">
       <h2>Restart the device</h2>
       <p class="muted">The access point and dashboard will be unavailable for a short time while the board restarts.</p>
-      <form method="post" action="/restart" onsubmit="return confirm('Restart the ESP32 now?')">
-        <button class="button button-red" type="submit">Restart ESP32</button>
+      <form method="post" action="/restart" onsubmit="return confirm('Restart the ESP32 now?')">)HTML");
+  page += controlTokenField();
+  page += F(R"HTML(<button class="button button-red" type="submit">Restart ESP32</button>
       </form>
     </section>
     <section class="card">
@@ -855,18 +905,36 @@ void redirectToDashboard()
 
 void ledOn()
 {
+  if (!hasValidControlToken())
+  {
+    rejectInvalidControlRequest();
+    return;
+  }
+
   setLed(true);
   redirectToDashboard();
 }
 
 void ledOff()
 {
+  if (!hasValidControlToken())
+  {
+    rejectInvalidControlRequest();
+    return;
+  }
+
   setLed(false);
   redirectToDashboard();
 }
 
 void restartEsp()
 {
+  if (!hasValidControlToken())
+  {
+    rejectInvalidControlRequest();
+    return;
+  }
+
   server.send(200, "text/html; charset=utf-8",
               "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
               "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
@@ -912,6 +980,8 @@ void setup()
     Serial.println(F("Access point could not be started. Check the board and Wi-Fi configuration."));
     return;
   }
+
+  controlToken = createControlToken();
 
   server.on("/", HTTP_GET, dashboardPage);
   server.on("/wifi", HTTP_GET, wifiPage);
