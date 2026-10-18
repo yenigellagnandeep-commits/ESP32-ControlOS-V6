@@ -22,16 +22,25 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: arduino/compile-sketches@v1
+      - name: Compile both ESP32 sketches
+        uses: arduino/compile-sketches@v1
         with:
           fqbn: esp32:esp32:esp32
           platforms: |
             - name: esp32:esp32
               source-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
           libraries: "[]"
-          # The repository root is searched recursively; this finds both
-          # the main sketch and the standalone sketch without compiling the
-          # standalone sketch twice.
+          # The repository root is searched recursively, so both sketch folders
+          # are found without compiling the standalone sketch twice.
           sketch-paths: |
             - .
+          sketches-report-path: sketches-reports
           enable-warnings-report: true
+      - name: Archive compiler report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: esp32-compile-report
+          path: sketches-reports/
+          if-no-files-found: warn
+          retention-days: 14
