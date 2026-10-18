@@ -25,4 +25,5 @@ jobs:
           libraries: "[]"
           sketch-paths: |
             - .
+            - ESP32-ControlOS-V6-SingleFile
           enable-warnings-report: true
