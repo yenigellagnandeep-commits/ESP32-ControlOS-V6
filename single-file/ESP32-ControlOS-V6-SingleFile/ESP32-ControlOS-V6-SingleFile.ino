@@ -608,16 +608,6 @@ void settingsPage()
   sendPage(page);
 }
 
-String svgTextElement(const char* text)
-{
-  String markup;
-  markup.reserve(150);
-  markup += F("<text x=\"380\" y=\"150\" text-anchor=\"middle\" fill=\"#a9b8cd\" font-size=\"14\">");
-  markup += text;
-  markup += F("</text>");
-  return markup;
-}
-
 void chartsPage()
 {
   String page = pageHeader();
