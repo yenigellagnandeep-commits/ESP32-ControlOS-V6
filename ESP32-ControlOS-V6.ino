@@ -1,22 +1,43 @@
 #include <WiFi.h>
 #include <WebServer.h>
+#include <string.h>
 
 const char* ssid = "ESP32_Control_OS";
-const char* password = "12345678";
+// Set a private WPA2 passphrase before uploading; the placeholder blocks insecure startup.
+const char* password = "CHANGE_ME_PRIVATE_PASSWORD";
 
 WebServer server(80);
 struct LogEntry
 {
   unsigned long time;
   int heap;
-  int rssi;
+  int clients;
 };
 
-LogEntry logs[100];
+const int LOG_CAPACITY = 100;
+LogEntry logs[LOG_CAPACITY];
 
-int logIndex = 0;
+int nextLogIndex = 0;
+int logCount = 0;
 
 const int LED_PIN = 2;
+
+bool isValidAccessPointPassword()
+{
+  const size_t passwordLength = strlen(password);
+  return strcmp(password, "CHANGE_ME_PRIVATE_PASSWORD") != 0 &&
+         passwordLength >= 8 && passwordLength <= 63;
+}
+
+String escapeHtml(String value)
+{
+  value.replace("&", "&amp;");
+  value.replace("<", "&lt;");
+  value.replace(">", "&gt;");
+  value.replace("\"", "&quot;");
+  value.replace("'", "&#39;");
+  return value;
+}
 
 String getHeader()
  {
@@ -32,7 +53,7 @@ String html = R"rawliteral(
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>ESP32 Control OS Pro</title>
+<title>ESP32 ControlOS V6</title>
 
 <style>
 
@@ -103,8 +124,6 @@ padding:20px;
 
 .card{
 
-.card{
-
 background:#1e293b;
 padding:20px;
 border-radius:20px;
@@ -137,7 +156,6 @@ color:#38bdf8;
 }
 
 .label{
-c:\Users\yenig\OneDrive\Desktop\phonix
 color:#94a3b8;
 font-size:14px;
 
@@ -170,6 +188,29 @@ font-size:16px;
 
 }
 
+.action-link {
+display:inline-block;
+min-width:180px;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+color:white;
+text-align:center;
+text-decoration:none;
+font-weight:bold;
+}
+
+.action-link:hover {
+filter:brightness(1.12);
+}
+
+button:focus-visible,
+.nav a:focus-visible,
+.action-link:focus-visible {
+outline:3px solid #facc15;
+outline-offset:3px;
+}
+
 .footer{
 
 text-align:center;
@@ -186,7 +227,7 @@ color:#94a3b8;
 
 <div class="header">
 
-🚀 ESP32 CONTROL OS PRO
+🚀 ESP32 CONTROL OS V6
 
 </div>
 
@@ -223,11 +264,11 @@ return R"rawliteral(
 
 <div class="footer">
 
-ESP32 Control OS Pro v4.0
+ESP32 ControlOS V6
 <br>
-Developer: Gnandeep Yenigella
+Built by Gnandeep Yenigella
 <br>
-Powered by ESP32 DevKit V1
+Built for ESP32 • Arduino C++
 
 </div>
 
@@ -247,7 +288,7 @@ page += R"rawliteral(
 
 <h2>📊 System Dashboard</h2>
 
-<p>Real-time ESP32 information</p>
+<p>Current device readings captured when this page loads.</p>
 
 </div>
 
@@ -268,23 +309,17 @@ page += "<div class='stat'>";
 page += String(millis()/1000);
 page += " s</div>";
 page += "</div>";page += "<div class='card'>";
-page += "<h2>⚡ Quick Statistics</h2><br>";
-
-page += "<b>Networks Found:</b> ";
-page += String(WiFi.scanNetworks());
-
+page += "<h2>💾 Device & Storage</h2><br>";
+page += "<b>Connected Clients:</b> ";
+page += String(WiFi.softAPgetStationNum());
 page += "<br><br>";
-
 page += "<b>Flash Size:</b> ";
 page += String(ESP.getFlashChipSize()/1024/1024);
 page += " MB";
-
 page += "<br><br>";
-
-page += "<b>Sketch Size:</b> ";
+page += "<b>Firmware Size:</b> ";
 page += String(ESP.getSketchSize()/1024);
 page += " KB";
-
 page += "</div>";
 
 page += "<div class='card'>";
@@ -316,15 +351,12 @@ page += "🔴 OFF";
 
 page += "</p><br>";
 
-page += "<a href='/on'>";
-page += "<button class='green'>LED ON</button>";
-page += "</a>";
-
-page += "&nbsp;";
-
-page += "<a href='/off'>";
-page += "<button class='red'>LED OFF</button>";
-page += "</a>";
+page += "<form method='post' action='/on' style='display:inline'>";
+page += "<button class='green' type='submit'>LED ON</button>";
+page += "</form>&nbsp;";
+page += "<form method='post' action='/off' style='display:inline'>";
+page += "<button class='red' type='submit'>LED OFF</button>";
+page += "</form>";
 
 page += "</div>";
 String health;
@@ -349,50 +381,16 @@ page += health;
 page += "</div>";
 page += "</div>";
 page += "<div class='card'>";
-
-page += "<h2>📈 Analytics</h2><br>";
-
-page += "<b>WiFi Networks Found:</b> ";
-page += String(WiFi.scanNetworks());
-
-page += "<br><br>";
-
-page += "<b>Free Heap:</b> ";
-page += String(ESP.getFreeHeap()/1024);
-page += " KB";
-
-page += "<br><br>";
-
-page += "<b>Flash Size:</b> ";
-page += String(ESP.getFlashChipSize()/1024/1024);
-page += " MB";
-
-page += "<br><br>";
-
-page += "<b>Sketch Size:</b> ";
-page += String(ESP.getSketchSize()/1024);
-page += " KB";
-
-page += "<br><br>";
-
-page += "<b>CPU Frequency:</b> ";
-page += String(getCpuFrequencyMhz());
-page += " MHz";
-
+page += "<h2>📈 History & Logs</h2><br>";
+page += "<p>Review recent free-heap and access-point client samples.</p><br>";
+page += "<a class='action-link blue' href='/charts'>Open device history</a> ";
+page += "<a class='action-link blue' href='/logs'>View system logs</a>";
 page += "</div>";
+
 page += "<div class='card'>";
-
-page += "<a href='/'>";
-
-page += "<button class='blue'>";
-
-page += "🔄 Refresh Dashboard";
-
-page += "</button>";
-
-page += "</a>";
-
-page += "</div>";page += getFooter();
+page += "<a class='action-link blue' href='/'>🔄 Refresh Dashboard</a>";
+page += "</div>";
+page += getFooter();
 
 server.send(200,"text/html",page);
 
@@ -419,7 +417,7 @@ page += "<div class='card'>";
 
 page += "<h3>";
 
-page += String(n);
+page += String(n < 0 ? 0 : n);
 
 page += " Networks Detected";
 
@@ -427,7 +425,11 @@ page += "</h3>";
 
 page += "</div>";
 
-if(n == 0){
+if (n < 0)
+{
+  page += "<div class='card'><h3>Scan unavailable</h3><p>Try opening the analyzer again.</p></div>";
+}
+else if(n == 0){
 
 page += R"rawliteral(
 
@@ -511,7 +513,7 @@ security = "Other";
 page += "<div class='card'>";
 
 page += "<h3>";
-page += WiFi.SSID(i);
+page += escapeHtml(WiFi.SSID(i));
 page += "</h3>";
 
 page += "<br>";
@@ -552,19 +554,13 @@ page += R"rawliteral(
 
 <div class="card">
 
-<a href="/wifi">
-
-<button class="blue">
-
-🔄 Scan Again
-
-</button>
-
-</a>
+<a class="action-link blue" href="/wifi">🔄 Scan Again</a>
 
 </div>
 
 )rawliteral";
+
+WiFi.scanDelete();
 
 page += getFooter();
 
@@ -620,27 +616,17 @@ page += "<div class='stat'>";
 page += String(millis()/1000);
 page += "s</div>";
 page += "</div>";
-unsigned long totalSeconds = millis()/1000;
-
-int hours = totalSeconds / 3600;
-int minutes = (totalSeconds % 3600) / 60;
-int seconds = totalSeconds % 60;
-
-
 page += "<div class='card'>";
-page += "<div class='label'>IP ADDRESS</div>";page += "<div class='card'>";
-
-page += "<div class='label'>CONNECTED DEVICES</div>";
-
-page += "<div class='stat'>";
-
-page += String(WiFi.softAPgetStationNum());
-
-page += "</div>";
-
-page += "</div>";
+page += "<div class='label'>IP ADDRESS</div>";
 page += "<div class='stat'>";
 page += WiFi.softAPIP().toString();
+page += "</div>";
+page += "</div>";
+
+page += "<div class='card'>";
+page += "<div class='label'>CONNECTED CLIENTS</div>";
+page += "<div class='stat'>";
+page += String(WiFi.softAPgetStationNum());
 page += "</div>";
 page += "</div>";
 
@@ -675,7 +661,7 @@ page += R"rawliteral(
 
 <h2>⚙️ Settings</h2>
 
-<p>System Management</p>
+<p>Device information and local maintenance</p>
 
 </div>
 
@@ -707,7 +693,7 @@ VERSION
 
 <div class="stat">
 
-v3.0
+v6.0
 
 </div>
 
@@ -721,15 +707,9 @@ v3.0
 
 <br>
 
-<a href="/restart">
-
-<button class="blue">
-
-🔄 Restart ESP32
-
-</button>
-
-</a>
+<form method="post" action="/restart">
+<button class="blue" type="submit">Restart ESP32</button>
+</form>
 
 </div>
 
@@ -746,23 +726,109 @@ void chartsPage()
   String page = getHeader();
 
   page += R"rawliteral(
-
 <div class="card">
-
-<h2>📈 Live Charts</h2>
-
-<p>Charts module is under development.</p>
-
-<p>Developer: Gnandeep Yenigella</p>
-
+  <h2>Recent device history</h2>
+  <p>Free memory and connected clients, sampled every five seconds.</p>
+  <p id="chart-status" role="status">Loading recent readings...</p>
+  <p class="label">Each line is scaled to show its trend over the same time window.</p>
 </div>
 
+<div class="card">
+  <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-bottom:1rem">
+    <span><span style="color:#38bdf8">●</span> Free heap</span>
+    <span><span style="color:#4ade80">●</span> Connected clients</span>
+  </div>
+  <svg id="history-chart" viewBox="0 0 760 300" role="img" aria-labelledby="history-title history-desc"
+       style="display:block;width:100%;height:auto;min-height:220px">
+    <title id="history-title">Recent device history</title>
+    <desc id="history-desc">A line chart of free heap and connected access point clients.</desc>
+    <text x="50%" y="50%" text-anchor="middle" fill="#94a3b8">Waiting for readings</text>
+  </svg>
+</div>
+
+<script>
+(async function () {
+  const status = document.getElementById('chart-status');
+  const chart = document.getElementById('history-chart');
+  try {
+    const response = await fetch('/history', { cache: 'no-store' });
+    if (!response.ok) throw new Error('History request failed');
+    const payload = await response.json();
+    const readings = Array.isArray(payload.entries) ? payload.entries : [];
+    if (!readings.length) {
+      status.textContent = 'No readings yet. New samples are recorded every five seconds.';
+      return;
+    }
+
+    const width = 760;
+    const height = 300;
+    const left = 54;
+    const right = 22;
+    const top = 24;
+    const bottom = 38;
+    const plotWidth = width - left - right;
+    const plotHeight = height - top - bottom;
+    const x = (index) => left + (readings.length < 2 ? plotWidth / 2 : index * plotWidth / (readings.length - 1));
+    const points = (key) => {
+      const values = readings.map((item) => Number(item[key]) || 0);
+      const minimum = Math.min(...values);
+      const maximum = Math.max(...values);
+      const range = maximum - minimum;
+      return values.map((value, index) => {
+        const normalized = range === 0 ? 0.5 : (value - minimum) / range;
+        const y = top + plotHeight - normalized * plotHeight;
+        return (index === 0 ? 'M' : 'L') + x(index).toFixed(1) + ',' + y.toFixed(1);
+      }).join(' ');
+    };
+
+    const grid = [0, 1, 2, 3, 4].map((line) => {
+      const y = top + line * plotHeight / 4;
+      return '<line x1="' + left + '" y1="' + y + '" x2="' + (width - right) +
+        '" y2="' + y + '" stroke="#334155" stroke-width="1" />';
+    }).join('');
+
+    chart.innerHTML =
+      '<title id="history-title">Recent device history</title>' +
+      '<desc id="history-desc">Normalized trends for free heap and connected clients across ' +
+      readings.length + ' readings.</desc>' + grid +
+      '<path d="' + points('heap_kb') + '" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />' +
+      '<path d="' + points('clients') + '" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />' +
+      '<text x="' + left + '" y="' + (height - 10) + '" fill="#94a3b8" font-size="12">Oldest</text>' +
+      '<text x="' + (width - right) + '" y="' + (height - 10) + '" text-anchor="end" fill="#94a3b8" font-size="12">Newest</text>';
+
+    const latest = readings[readings.length - 1];
+    status.textContent = 'Latest: ' + latest.heap_kb + ' KB free heap · ' +
+      latest.clients + ' connected client(s) · ' + readings.length + ' readings';
+  } catch (error) {
+    status.textContent = 'History could not be loaded. Refresh the page to try again.';
+  }
+})();
+</script>
 )rawliteral";
 
   page += getFooter();
-
-  server.send(200,"text/html",page);
+  server.send(200, "text/html", page);
 }
+
+void historyAPI()
+{
+  String json = "{\"entries\":[";
+  const int oldestLogIndex = (nextLogIndex - logCount + LOG_CAPACITY) % LOG_CAPACITY;
+
+  for (int offset = 0; offset < logCount; offset++)
+  {
+    const int index = (oldestLogIndex + offset) % LOG_CAPACITY;
+    if (offset > 0) json += ",";
+    json += "{\"seconds\":" + String(logs[index].time);
+    json += ",\"heap_kb\":" + String(logs[index].heap);
+    json += ",\"clients\":" + String(logs[index].clients) + "}";
+  }
+
+  json += "]}";
+  server.sendHeader("Cache-Control", "no-store");
+  server.send(200, "application/json", json);
+}
+
 void logsPage(){
 
 String page = getHeader();
@@ -775,14 +841,16 @@ page += R"rawliteral(
 
 )rawliteral";
 
-for(int i=0;i<logIndex;i++)
+const int oldestLogIndex = (nextLogIndex - logCount + LOG_CAPACITY) % LOG_CAPACITY;
+for (int offset = 0; offset < logCount; offset++)
 {
+  const int index = (oldestLogIndex + offset) % LOG_CAPACITY;
   page += "Time: ";
-  page += String(logs[i].time);
+  page += String(logs[index].time);
   page += "s | RAM: ";
-  page += String(logs[i].heap);
-  page += "KB | RSSI: ";
-  page += String(logs[i].rssi);
+  page += String(logs[index].heap);
+  page += "KB | Clients: ";
+  page += String(logs[index].clients);
   page += "<br>";
 }
 
@@ -800,11 +868,10 @@ page += R"rawliteral(
 
 <div class="card">
 
-<h2>ℹ️ About ESP32 Control OS Pro</h2>
+<h2>ℹ️ About ESP32 ControlOS V6</h2>
 
 <p>
-A professional ESP32 web dashboard designed for
-monitoring, networking, and device management.
+A local web dashboard for device monitoring, Wi-Fi analysis, and built-in LED control.
 </p>
 
 </div>
@@ -818,7 +885,7 @@ PROJECT
 </div>
 
 <div class="stat">
-ESP32 OS
+ESP32 ControlOS
 </div>
 
 </div>
@@ -830,7 +897,7 @@ VERSION
 </div>
 
 <div class="stat">
-3.0
+6.0
 </div>
 
 </div>
@@ -875,23 +942,25 @@ Gnandeep Yenigella
 
 <div class="card">
 
-<h3>Future Features</h3>
+<h3>Included features</h3>
 
 <ul>
 
-<li>Network Tools</li>
+<li>On-demand Wi-Fi scan</li>
 
-<li>Live Charts</li>
+<li>Heap and uptime history</li>
 
-<li>OTA Updates</li>
+<li>Access point client count</li>
 
-<li>GPIO Manager</li>
+<li>GPIO 2 LED control</li>
 
-<li>Data Logging</li>
+<li>Local restart action</li>
 
-<li>Advanced Analytics</li>
+<li>JSON status and history endpoints</li>
 
 </ul>
+
+<p>Anyone connected to this access point can operate the dashboard, including controlling the LED and restarting the ESP32. Share its passphrase only with trusted users.</p>
 
 </div>
 
@@ -941,15 +1010,7 @@ The page you requested does not exist.
 
 <br>
 
-<a href="/">
-
-<button class="blue">
-
-🏠 Go Home
-
-</button>
-
-</a>
+<a class="action-link blue" href="/">🏠 Go Home</a>
 
 </div>
 
@@ -961,6 +1022,7 @@ server.send(404,"text/html",page);
 
 }void statusAPI()
 {
+  server.sendHeader("Cache-Control", "no-store");
   String json = "{";
 
   json += "\"heap\":" + String(ESP.getFreeHeap()/1024) + ",";
@@ -975,15 +1037,14 @@ server.send(404,"text/html",page);
 
 void saveLog()
 {
-  logs[logIndex].time = millis()/1000;
-  logs[logIndex].heap = ESP.getFreeHeap()/1024;
-  logs[logIndex].rssi = WiFi.RSSI();
+  logs[nextLogIndex].time = millis()/1000;
+  logs[nextLogIndex].heap = ESP.getFreeHeap()/1024;
+  logs[nextLogIndex].clients = WiFi.softAPgetStationNum();
 
-  logIndex++;
-
-  if(logIndex >= 100)
+  nextLogIndex = (nextLogIndex + 1) % LOG_CAPACITY;
+  if (logCount < LOG_CAPACITY)
   {
-    logIndex = 0;
+    logCount++;
   }
 }
 
@@ -996,21 +1057,28 @@ digitalWrite(LED_PIN, LOW);
 
 Serial.println();
 Serial.println("=================================");
-Serial.println("ESP32 Control OS Pro v4.0");
-Serial.println("Developer: Gnandeep Yenigella");
-Serial.println("Powered by ESP32 DevKit V1");
+Serial.println("ESP32 ControlOS V6");
+Serial.println("Built by Gnandeep Yenigella");
+Serial.println("Built for ESP32 • Arduino C++");
 Serial.println("Starting...");
 Serial.println("=================================");
 
+if (!isValidAccessPointPassword())
+{
+  Serial.println("Set a private WPA2 passphrase (8-63 characters) before uploading.");
+  return;
+}
+
 WiFi.mode(WIFI_AP);
 
-WiFi.softAP(ssid, password);
+if (!WiFi.softAP(ssid, password))
+{
+  Serial.println("Access point could not be started.");
+  return;
+}
 
 Serial.print("SSID: ");
 Serial.println(ssid);
-
-Serial.print("Password: ");
-Serial.println(password);
 
 Serial.print("IP Address: ");
 Serial.println(WiFi.softAPIP());
@@ -1022,6 +1090,7 @@ server.on("/wifi", wifiPage);
 server.on("/system", systemPage);
 
 server.on("/charts", chartsPage);
+server.on("/history", historyAPI);
 
 server.on("/status", statusAPI);
 
@@ -1031,11 +1100,11 @@ server.on("/logs", logsPage);
 
 server.on("/about", aboutPage);
 
-server.on("/on", ledON);
+server.on("/on", HTTP_POST, ledON);
 
-server.on("/off", ledOFF);
+server.on("/off", HTTP_POST, ledOFF);
 
-server.on("/restart", restartESP);
+server.on("/restart", HTTP_POST, restartESP);
 
 server.onNotFound(notFound);
 
