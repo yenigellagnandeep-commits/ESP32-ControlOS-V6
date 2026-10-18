@@ -84,9 +84,9 @@ GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to 
 
 ## Hardware verification
 
-On **2026-10-18**, you reported uploading and running the firmware on a physical ESP32. The screenshots below document the dashboard pages and live readings visible during that session. They are evidence of the displayed pages and readings, not a claim that every control was independently exercised.
+**Project-owner hardware test (2026-10-18):** The firmware was uploaded and run on a physical ESP32. The screenshots below were captured during that session and document the pages and readings visible at the time. They do not establish that every control was independently tested.
 
-> **Screenshot context:** The Settings screenshot shows the single-file variant’s credentials-at-the-top wording. The primary sketch now keeps credentials in the ignored `config.local.h` file described above. The images are preserved as captured. The connection badge on non-dashboard pages was corrected after this session, so those captured badge states do not represent the current source.
+> **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
 
 ### Dashboard
 
