@@ -39,7 +39,7 @@ The example file intentionally contains a placeholder password. If you forget to
 
 ### Optional single-file sketch
 
-`ESP32-ControlOS-V6-SingleFile.ino` is available if you prefer one sketch file. Before uploading it, replace the SSID and password constants near the top. The committed password is a placeholder, and the access point will not start until you set a private WPA2 passphrase that is 8 to 63 characters long.
+`single-file/ESP32-ControlOS-V6-SingleFile/ESP32-ControlOS-V6-SingleFile.ino` is available if you prefer one sketch file. Open the `single-file/ESP32-ControlOS-V6-SingleFile` folder in Arduino IDE, then replace the SSID and password constants near the top before uploading. The committed password is a placeholder, and the access point will not start until you set a private WPA2 passphrase that is 8 to 63 characters long.
 
 The ESP32 creates its own password-protected Wi-Fi network. It does not connect to your home router or to the networks shown by the scan page. While connected to the ESP32 network, your phone or computer may show that there is no internet connection; that is expected.
 
