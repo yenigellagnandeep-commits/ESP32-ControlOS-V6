@@ -9,12 +9,14 @@ struct LogEntry
 {
   unsigned long time;
   int heap;
-  int rssi;
+  int clients;
 };
 
 LogEntry logs[100];
 
-int logIndex = 0;
+int nextLogIndex = 0;
+int logCount = 0;
+const int LOG_CAPACITY = 100;
 
 const int LED_PIN = 2;
 
@@ -103,8 +105,6 @@ padding:20px;
 
 .card{
 
-.card{
-
 background:#1e293b;
 padding:20px;
 border-radius:20px;
@@ -137,7 +137,6 @@ color:#38bdf8;
 }
 
 .label{
-c:\Users\yenig\OneDrive\Desktop\phonix
 color:#94a3b8;
 font-size:14px;
 
@@ -270,8 +269,8 @@ page += " s</div>";
 page += "</div>";page += "<div class='card'>";
 page += "<h2>⚡ Quick Statistics</h2><br>";
 
-page += "<b>Networks Found:</b> ";
-page += String(WiFi.scanNetworks());
+page += "<b>Connected Clients:</b> ";
+page += String(WiFi.softAPgetStationNum());
 
 page += "<br><br>";
 
@@ -352,8 +351,8 @@ page += "<div class='card'>";
 
 page += "<h2>📈 Analytics</h2><br>";
 
-page += "<b>WiFi Networks Found:</b> ";
-page += String(WiFi.scanNetworks());
+page += "<b>Connected Clients:</b> ";
+page += String(WiFi.softAPgetStationNum());
 
 page += "<br><br>";
 
@@ -628,19 +627,16 @@ int seconds = totalSeconds % 60;
 
 
 page += "<div class='card'>";
-page += "<div class='label'>IP ADDRESS</div>";page += "<div class='card'>";
-
-page += "<div class='label'>CONNECTED DEVICES</div>";
-
-page += "<div class='stat'>";
-
-page += String(WiFi.softAPgetStationNum());
-
-page += "</div>";
-
-page += "</div>";
+page += "<div class='label'>IP ADDRESS</div>";
 page += "<div class='stat'>";
 page += WiFi.softAPIP().toString();
+page += "</div>";
+page += "</div>";
+
+page += "<div class='card'>";
+page += "<div class='label'>CONNECTED CLIENTS</div>";
+page += "<div class='stat'>";
+page += String(WiFi.softAPgetStationNum());
 page += "</div>";
 page += "</div>";
 
@@ -707,7 +703,7 @@ VERSION
 
 <div class="stat">
 
-v3.0
+v4.0
 
 </div>
 
@@ -775,14 +771,16 @@ page += R"rawliteral(
 
 )rawliteral";
 
-for(int i=0;i<logIndex;i++)
+const int oldestLogIndex = (nextLogIndex - logCount + LOG_CAPACITY) % LOG_CAPACITY;
+for (int offset = 0; offset < logCount; offset++)
 {
+  const int index = (oldestLogIndex + offset) % LOG_CAPACITY;
   page += "Time: ";
-  page += String(logs[i].time);
+  page += String(logs[index].time);
   page += "s | RAM: ";
-  page += String(logs[i].heap);
-  page += "KB | RSSI: ";
-  page += String(logs[i].rssi);
+  page += String(logs[index].heap);
+  page += "KB | Clients: ";
+  page += String(logs[index].clients);
   page += "<br>";
 }
 
@@ -830,7 +828,7 @@ VERSION
 </div>
 
 <div class="stat">
-3.0
+4.0
 </div>
 
 </div>
@@ -975,15 +973,14 @@ server.send(404,"text/html",page);
 
 void saveLog()
 {
-  logs[logIndex].time = millis()/1000;
-  logs[logIndex].heap = ESP.getFreeHeap()/1024;
-  logs[logIndex].rssi = WiFi.RSSI();
+  logs[nextLogIndex].time = millis()/1000;
+  logs[nextLogIndex].heap = ESP.getFreeHeap()/1024;
+  logs[nextLogIndex].clients = WiFi.softAPgetStationNum();
 
-  logIndex++;
-
-  if(logIndex >= 100)
+  nextLogIndex = (nextLogIndex + 1) % LOG_CAPACITY;
+  if (logCount < LOG_CAPACITY)
   {
-    logIndex = 0;
+    logCount++;
   }
 }
 
@@ -1008,9 +1005,6 @@ WiFi.softAP(ssid, password);
 
 Serial.print("SSID: ");
 Serial.println(ssid);
-
-Serial.print("Password: ");
-Serial.println(password);
 
 Serial.print("IP Address: ");
 Serial.println(WiFi.softAPIP());
