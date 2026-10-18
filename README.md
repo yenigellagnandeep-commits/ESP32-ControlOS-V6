@@ -89,6 +89,14 @@ GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to 
 
 > **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
 
+### Test board
+
+The photos below show the front and back of the physical ESP32 DevKit V1 used for the hardware run.
+
+| Front | Back |
+| --- | --- |
+| ![Front of the ESP32 DevKit V1 used for hardware verification](docs/hardware/esp32-devkit-v1-front.jpg) | ![Back of the ESP32 DevKit V1 used for hardware verification](docs/hardware/esp32-devkit-v1-back.jpg) |
+
 ### Dashboard
 
 ![ESP32 dashboard with live readings and LED controls](docs/screenshots/01-dashboard.png)
