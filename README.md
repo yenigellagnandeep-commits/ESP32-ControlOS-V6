@@ -87,6 +87,8 @@ GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to 
 
 **Project-owner hardware test (2026-10-18):** The firmware was uploaded and run on a physical ESP32 DevKit V1. The screenshots below were captured during that session and document the pages and readings visible at the time. They do not establish that every control was independently tested.
 
+**Latest main verification (2026-10-19, commit `0a6eacb`):** The project owner confirmed that the current repository firmware ran successfully on a physical ESP32 DevKit V1. Individual feature results were not itemized.
+
 > **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
 
 ### Test board
