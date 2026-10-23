@@ -66,7 +66,8 @@ def check_readme_routes() -> None:
     sketch = sketch_path.read_text(encoding="utf-8")
     readme = readme_path.read_text(encoding="utf-8")
 
-    registered = set(ROUTE_RE.findall(sketch))
+    # ROUTE_RE captures (path, method); normalize to (method, path) for comparison.
+    registered = {(method, path) for path, method in ROUTE_RE.findall(sketch)}
     documented: set[tuple[str, str]] = set()
     for method, path_cell in TABLE_ROW_RE.findall(readme):
         for path in re.findall(r"/[A-Za-z0-9_-]*", path_cell):
