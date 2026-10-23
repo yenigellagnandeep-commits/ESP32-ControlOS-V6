@@ -85,9 +85,9 @@ GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to 
 
 ## Hardware verification
 
-**Project-owner hardware test (2026-10-18):** The firmware was uploaded and run on a physical ESP32 DevKit V1. The screenshots below were captured during that session and document the pages and readings visible at the time. They do not establish that every control was independently tested.
+**Physical-board test report:** The project owner reports manually testing the dashboard controls, Wi-Fi connection failure behavior, invalid requests, and restart behavior on a physical ESP32 DevKit V1. See the [hardware test report](docs/HARDWARE_TEST_REPORT.md) for the recorded scope and results. The report identifies these as owner-reported manual tests; the exact test date, firmware commit, and per-case observations were not supplied.
 
-**Latest main verification (2026-10-19, commit `0a6eacb`):** The project owner confirmed that the current repository firmware ran successfully on a physical ESP32 DevKit V1. Individual feature results were not itemized.
+The screenshots below document pages and readings visible during a hardware session. GitHub Actions compilation confirms that firmware builds for the configured target; it does not independently verify physical hardware behavior.
 
 > **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
 
