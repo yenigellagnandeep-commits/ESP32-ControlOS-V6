@@ -1,132 +1,170 @@
 # ESP32 ControlOS V6
 
-[![ESP32 firmware build](https://github.com/yenigellagnandeep-commits/ESP32-ControlOS-V6/actions/workflows/esp32-build.yml/badge.svg?branch=main)](https://github.com/yenigellagnandeep-commits/ESP32-ControlOS-V6/actions/workflows/esp32-build.yml)
+[![Firmware build](https://github.com/yenigellagnandeep-commits/ESP32-ControlOS-V6/actions/workflows/esp32-build.yml/badge.svg?branch=main)](https://github.com/yenigellagnandeep-commits/ESP32-ControlOS-V6/actions/workflows/esp32-build.yml)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-ESP32-orange.svg)](#hardware)
 
-A private, local dashboard for monitoring and controlling an ESP32 board. It runs on the ESP32 itself and does not need an internet connection, external sensors, or an OLED display.
+**A local-first web dashboard for monitoring and controlling an ESP32—hosted entirely on the board itself.**
 
-## What it does
+Connect from a phone or laptop to view live device information, scan nearby 2.4 GHz Wi-Fi networks, review recent telemetry, control the configured built-in LED, and restart the board. No cloud service, home router, external sensors, or OLED display is required.
 
-- Shows live free memory, uptime, CPU frequency, flash size, firmware size, connected clients, and access point address.
-- Scans nearby 2.4 GHz Wi-Fi networks only when you open the Wi-Fi scan page.
-- Draws recent free-memory and client-count trends from readings held in RAM.
-- Controls the board's configured built-in LED and can restart the board.
-- Serves its pages and JSON data locally, without sending readings to a cloud service.
+![ESP32 ControlOS dashboard preview](docs/screenshots/01-dashboard.png)
+
+## Contents
+
+- [Features](#features)
+- [Hardware](#hardware)
+- [Quick start](#quick-start)
+- [Dashboard routes](#dashboard-routes)
+- [Design and data](#design-and-data)
+- [Security and privacy](#security-and-privacy)
+- [Build and verification](#build-and-verification)
+- [Screenshots and hardware evidence](#screenshots-and-hardware-evidence)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+## Features
+
+- **Live device status:** free heap, uptime, CPU frequency, flash size, firmware size, connected clients, and access-point address.
+- **Wi-Fi scan:** on-demand nearby-network scanning with network names, channels, security, and measured signal strength.
+- **Recent history:** in-memory free-memory and client-count trends with a log view.
+- **Local controls:** switch the configured built-in LED on/off and restart the ESP32.
+- **Local data path:** dashboard pages and JSON readings are served by the ESP32; telemetry is not sent to a cloud service.
+- **Two sketch formats:** a configurable main sketch and an optional single-file version.
 
 ## Hardware
 
-- **Physical test board:** ESP32 DevKit V1.
+- **Test board reported by the project owner:** ESP32 DevKit V1.
 - An ESP32 board supported by the Espressif Arduino core.
-- A USB cable for setup and uploading.
+- A USB data cable for uploading firmware.
 
-The default LED setting is GPIO 2, which is common on ESP32 DevKit boards. LED pins and polarity vary by board; some boards do not have a built-in LED. Use the settings in config.local.h if your board needs a different pin or active-low setting.
+The default LED setting is GPIO 2, which is common on ESP32 DevKit boards. Built-in LED pins and active polarity vary by board; some boards do not expose a built-in LED. Adjust `CONTROL_OS_LED_PIN` and `CONTROL_OS_LED_ACTIVE_LOW` in the configuration for your board.
 
-## Set up a private Wi-Fi password
+## Quick start
 
-1. Open the sketch folder.
-2. Copy config.example.h to a new file named config.local.h.
-3. In config.local.h, change CONTROL_OS_WIFI_PASSWORD to a private passphrase that is 8 to 63 characters long. You may also change the network name.
-4. Keep config.local.h private. Git ignores this file so it is not included in commits.
+### 1. Configure the Wi-Fi access point
 
-The example file intentionally contains a placeholder password. If you forget to make a private configuration file, the firmware refuses to start the access point.
+For the **main sketch**:
 
-## Build and upload
+1. Copy `config.example.h` to a new file named `config.local.h` in the repository root, beside `ESP32-ControlOS-V6.ino`.
+2. Set `CONTROL_OS_WIFI_SSID` and replace `CHANGE_ME_PRIVATE_PASSWORD` with your own WPA2 passphrase of 8–63 characters.
+3. Keep `config.local.h` private. It is listed in `.gitignore` and should never be committed.
 
-1. Install the Espressif ESP32 board package in Arduino IDE.
-2. Open ESP32-ControlOS-V6.ino from this folder.
-3. Select the board and serial port that match your hardware. The automated build uses **ESP32 Dev Module**.
-4. Connect the board by USB and upload the sketch.
-5. Open Serial Monitor at **115200 baud**. It prints the access point name and local address, but never prints the passphrase.
-6. Connect your phone or computer to the ESP32 Wi-Fi network and visit [http://192.168.4.1](http://192.168.4.1).
+The example intentionally uses a placeholder password. If no private configuration is supplied, the main firmware refuses to start the access point.
 
-### Optional single-file sketch
+### 2. Build and upload
 
-`ESP32-ControlOS-V6-SingleFile/ESP32-ControlOS-V6-SingleFile.ino` is available in the top-level `ESP32-ControlOS-V6-SingleFile` folder if you prefer one sketch file. Open that folder in Arduino IDE, then replace the SSID and password constants near the top before uploading. The committed password is a placeholder, and the access point will not start until you set a private WPA2 passphrase that is 8 to 63 characters long.
+1. Install the **Espressif ESP32 board package** in Arduino IDE.
+2. Open `ESP32-ControlOS-V6.ino` from the repository root.
+3. Select **ESP32 Dev Module** or the matching board profile for your specific hardware, and select its serial port.
+4. Upload the sketch.
+5. Open Serial Monitor at **115200 baud**. The firmware prints the access-point name and local address, not the passphrase.
 
-The ESP32 creates its own password-protected Wi-Fi network. It does not connect to your home router or to the networks shown by the scan page. While connected to the ESP32 network, your phone or computer may show that there is no internet connection; that is expected.
+### 3. Open the dashboard
 
-## Pages and routes
+Connect your phone or computer to the ESP32's Wi-Fi network, then open [http://192.168.4.1](http://192.168.4.1).
+
+The ESP32 creates its own local network; it does not connect to your home router or to the networks listed by the scan page. Your phone may warn that this Wi-Fi network has no internet access. That is expected.
+
+### Optional: single-file sketch
+
+If you prefer a single file, open `ESP32-ControlOS-V6-SingleFile/ESP32-ControlOS-V6-SingleFile.ino` from its own folder in Arduino IDE. Set the SSID and password constants near the top before uploading. The committed password is a placeholder, and the access point will not start until a private WPA2 passphrase of 8–63 characters is configured.
+
+## Dashboard routes
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | / | Live device dashboard |
-| GET | /wifi | Scan nearby Wi-Fi networks |
-| GET | /system | Device details |
-| GET | /charts | Automatically refreshed history chart |
-| GET | /logs | Recent readings in time order |
-| GET | /settings | Restart the board and view setup note |
-| GET | /about | Features, privacy, and project information |
-| GET | /status | Current readings as JSON |
-| GET | /history | Recent readings as JSON |
-| POST | /on and /off | Turn the configured LED on or off |
-| POST | /restart | Restart the ESP32 |
+| GET | `/` | Live dashboard |
+| GET | `/wifi` | Scan nearby Wi-Fi networks |
+| GET | `/system` | Device details |
+| GET | `/charts` | Automatically refreshed history chart |
+| GET | `/logs` | Recent readings in time order |
+| GET | `/settings` | Restart control and setup note |
+| GET | `/about` | Features, privacy, and project information |
+| GET | `/status` | Current readings as JSON |
+| GET | `/history` | Recent readings as JSON |
+| POST | `/on` and `/off` | Turn the configured LED on or off |
+| POST | `/restart` | Restart the ESP32 |
 
-Wi-Fi names are escaped before display. Signal is shown as the radio's measured dBm value; the page does not invent a signal-quality percentage. Dashboard polling does not start additional Wi-Fi scans.
+Wi-Fi names are escaped before display. Signal strength is reported as measured dBm, not an invented quality percentage. Normal dashboard polling does not trigger additional Wi-Fi scans.
 
-## History and storage
+## Design and data
 
-The ESP32 keeps up to 100 samples in memory, normally one sample every five seconds. That is about eight minutes and twenty seconds of readings. A Wi-Fi scan can briefly delay sampling. The readings are not saved permanently and are cleared when the board restarts.
+The firmware serves the pages and JSON endpoints with the ESP32's embedded HTTP server. It stores up to 100 samples in RAM, normally one sample every five seconds—about eight minutes and twenty seconds. Samples are not saved permanently and are cleared on restart. Wi-Fi scanning can briefly delay sampling.
 
-## Safety and privacy
+See [Architecture and Design](docs/ARCHITECTURE.md) for the system diagram, routes, storage behavior, configuration variants, and security boundaries.
 
-The WPA2 access point is the network access gate. State-changing forms also use a random token created at boot to help block cross-site form submissions. Anyone connected to the access point can still load the dashboard and use its controls, so share its password only with people you trust. Do not reuse your home Wi-Fi password.
+## Security and privacy
 
-The firmware does not send device readings to a cloud service. The nearby network scan displays names and radio measurements only on the local dashboard.
+- The access point uses WPA2. Choose a private passphrase and never reuse the one from your home network.
+- State-changing POST requests check a random token created at boot to help mitigate cross-site form submissions.
+- This token is **not** a user-account system. Anyone with the access-point password can load the dashboard and use its controls.
+- Device telemetry stays local; the firmware does not send readings to a cloud service.
+- Do not paste passwords into issues, pull requests, screenshots, or serial logs.
 
-## Troubleshooting
+Read the [security policy](SECURITY.md) before reporting a possible vulnerability.
 
-- **The access point does not appear:** Check Serial Monitor. The firmware will not start until the placeholder is replaced with a passphrase that is 8–63 characters long. Also check that the board started successfully.
-- **The dashboard does not open:** Connect to the ESP32's own Wi-Fi network and open http://192.168.4.1.
-- **The LED does not respond:** Your board may use another pin or active-low wiring. Set CONTROL_OS_LED_PIN and CONTROL_OS_LED_ACTIVE_LOW in your private configuration file.
-- **The Wi-Fi scan is empty:** The ESP32 scan covers 2.4 GHz networks. Try again closer to the router.
+## Build and verification
 
-## Build check
+The [GitHub Actions build](https://github.com/yenigellagnandeep-commits/ESP32-ControlOS-V6/actions/workflows/esp32-build.yml) runs on pushes and pull requests to `main`. It:
 
-GitHub Actions compiles the sketch for **ESP32 Dev Module** on pull requests to main and pushes to main. The project-owner hardware test used an **ESP32 DevKit V1**. A passing build confirms that the sketch compiles for the automated target; board-specific features should still be checked on the physical board.
+1. Checks the main and single-file sketches stay synchronized outside documented configuration/setup differences.
+2. Checks that private configuration stays ignored and selected password, control-token, and HTML-escaping safeguards remain present.
+3. Compiles both sketch variants for the `esp32:esp32:esp32` target.
+4. Checks repository-local Markdown links/images and verifies the README route table against the registered firmware routes.
 
-## Hardware verification
+A passing build confirms compilation for the configured target; it does not independently prove physical-board behavior.
 
-**Physical-board test report:** The project owner reports manually testing the dashboard controls, Wi-Fi connection failure behavior, invalid requests, and restart behavior on a physical ESP32 DevKit V1. See the [hardware test report](docs/HARDWARE_TEST_REPORT.md) for the recorded scope and results. The report identifies these as owner-reported manual tests; the exact test date, firmware commit, and per-case observations were not supplied.
+## Screenshots and hardware evidence
 
-The screenshots below document pages and readings visible during a hardware session. GitHub Actions compilation confirms that firmware builds for the configured target; it does not independently verify physical hardware behavior.
+The project owner reports manually testing the dashboard controls, Wi-Fi connection failure behavior, invalid requests, and restart behavior on a physical ESP32 DevKit V1. See the [hardware test report](docs/HARDWARE_TEST_REPORT.md). The exact test date, firmware commit used for that session, and per-case observations were not recorded, so the report keeps those details explicitly unknown.
 
-> **Screenshot context:** The Settings screenshot reflects the single-file sketch’s credentials-at-the-top setup note; the main sketch uses the ignored `config.local.h` file described above. The images are preserved unchanged. The non-dashboard connection badge shown in these captures was corrected afterward.
+The photographs and screenshots below are retained as evidence from the hardware session. The screenshots include an earlier version of the connection-status badge, which was corrected afterward; small UI details may therefore differ from the current firmware.
 
-### Test board
+<details>
+<summary>View dashboard screenshots</summary>
 
-The photos below show the front and back of the physical ESP32 DevKit V1 used for the hardware run.
+### Dashboard
+![Dashboard with live readings and LED controls](docs/screenshots/01-dashboard.png)
+
+### Nearby Wi-Fi scan
+![Wi-Fi scan with network names, signal strength, channels, and security](docs/screenshots/02-wifi-scan.png)
+
+### Device details
+![Device details and hardware readings](docs/screenshots/03-device-details.png)
+
+### Recent history
+![Chart of free-memory and connected-client readings](docs/screenshots/04-history.png)
+
+### Recent logs
+![Recent uptime, free-memory, and connected-client samples](docs/screenshots/05-logs.png)
+
+### Settings
+![Settings page with the restart control](docs/screenshots/06-settings.png)
+
+### About
+![About page describing the project and privacy](docs/screenshots/07-about.png)
+
+</details>
+
+<details>
+<summary>View the test board</summary>
 
 | Front | Back |
 | --- | --- |
-| ![Front of the ESP32 DevKit V1 used for hardware verification](docs/hardware/esp32-devkit-v1-front.jpg) | ![Back of the ESP32 DevKit V1 used for hardware verification](docs/hardware/esp32-devkit-v1-back.jpg) |
+| ![Front of the ESP32 DevKit V1](docs/hardware/esp32-devkit-v1-front.jpg) | ![Back of the ESP32 DevKit V1](docs/hardware/esp32-devkit-v1-back.jpg) |
 
-### Dashboard
+</details>
 
-![ESP32 dashboard with live readings and LED controls](docs/screenshots/01-dashboard.png)
+For contributor expectations, see [CONTRIBUTING.md](CONTRIBUTING.md). For manual test limitations and the next test-record template, see [the hardware test report](docs/HARDWARE_TEST_REPORT.md).
 
-### Nearby Wi-Fi scan
+## Troubleshooting
 
-![Nearby Wi-Fi scan showing network names, signal strength, channels, and security](docs/screenshots/02-wifi-scan.png)
-
-### Device details
-
-![ESP32 device details and hardware readings](docs/screenshots/03-device-details.png)
-
-### Recent history
-
-![Chart of ESP32 memory and connected-client readings](docs/screenshots/04-history.png)
-
-### Recent logs
-
-![Table of ESP32 uptime, free-memory, and connected-client samples](docs/screenshots/05-logs.png)
-
-### Settings
-
-![ESP32 settings page with the device restart control](docs/screenshots/06-settings.png)
-
-### About
-
-![About page describing ESP32 ControlOS features and privacy](docs/screenshots/07-about.png)
+- **The access point does not appear:** Check Serial Monitor. The firmware refuses to start while the placeholder password is configured; use a private 8–63 character passphrase.
+- **The dashboard does not open:** Connect to the ESP32's own access point and open http://192.168.4.1.
+- **The LED does not respond:** Confirm your board's LED pin and polarity, then adjust `CONTROL_OS_LED_PIN` and `CONTROL_OS_LED_ACTIVE_LOW`.
+- **The Wi-Fi scan is empty:** The ESP32 scans 2.4 GHz networks only. Try again closer to the access point you're looking for.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
