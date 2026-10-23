@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Check sketch synchronization and security invariants
         run: python3 scripts/check_sketch_sync.py
+      - name: Check documentation links and route reference
+        run: python3 scripts/check_docs.py
       - name: Compile both ESP32 sketches
         uses: arduino/compile-sketches@v1
         with:
