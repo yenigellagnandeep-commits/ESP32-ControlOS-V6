@@ -21,6 +21,7 @@ Connect from a phone or laptop to view live device information, scan nearby 2.4 
 - [Build and verification](#build-and-verification)
 - [Screenshots and hardware evidence](#screenshots-and-hardware-evidence)
 - [Troubleshooting](#troubleshooting)
+- [Project documentation](#project-documentation)
 - [License](#license)
 
 ## Features
@@ -160,7 +161,7 @@ See the [hardware test report](docs/HARDWARE_TEST_REPORT.md) for the distinction
 
 </details>
 
-For contributor expectations, see [CONTRIBUTING.md](CONTRIBUTING.md). For manual test limitations and the next test-record template, see [the hardware test report](docs/HARDWARE_TEST_REPORT.md).
+For contributor expectations, see [CONTRIBUTING.md](CONTRIBUTING.md). Use the [screenshot privacy guide](docs/SCREENSHOT_GUIDE.md) before adding public evidence, and follow the [release checklist](docs/RELEASE_CHECKLIST.md) before tagging a release. The [hardware test report](docs/HARDWARE_TEST_REPORT.md) distinguishes owner-reported manual tests from automated checks. See [the dated hardware session](docs/HARDWARE_SESSION_2026-10-25.md) for the latest reported run.
 
 ## Troubleshooting
 
@@ -168,6 +169,16 @@ For contributor expectations, see [CONTRIBUTING.md](CONTRIBUTING.md). For manual
 - **The dashboard does not open:** Connect to the ESP32's own access point and open http://192.168.4.1.
 - **The LED does not respond:** Confirm your board's LED pin and polarity, then adjust `CONTROL_OS_LED_PIN` and `CONTROL_OS_LED_ACTIVE_LOW`.
 - **The Wi-Fi scan is empty:** The ESP32 scans 2.4 GHz networks only. Try again closer to the access point you're looking for.
+
+## Project documentation
+
+- [Architecture and design](docs/ARCHITECTURE.md) — system flow, endpoints, storage, and security boundaries.
+- [Hardware test report](docs/HARDWARE_TEST_REPORT.md) — manual-test scope and limitations.
+- [Hardware session — 25 October 2026](docs/HARDWARE_SESSION_2026-10-25.md) — readings visible in the submitted live dashboard screenshots.
+- [Screenshot guide](docs/SCREENSHOT_GUIDE.md) — capture standards and privacy checks.
+- [Release checklist](docs/RELEASE_CHECKLIST.md) — repeatable pre-release verification.
+- [Changelog](CHANGELOG.md) — notable repository changes.
+- [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md).
 
 ## License
 
