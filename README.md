@@ -117,9 +117,13 @@ A passing build confirms compilation for the configured target; it does not inde
 
 ## Screenshots and hardware evidence
 
-The project owner reports manually testing the dashboard controls, Wi-Fi connection failure behavior, invalid requests, and restart behavior on a physical ESP32 DevKit V1. See the [hardware test report](docs/HARDWARE_TEST_REPORT.md). The exact test date, firmware commit used for that session, and per-case observations were not recorded, so the report keeps those details explicitly unknown.
+**Latest owner-reported live run: 25 October 2026.** The dashboard was opened from a client connected to the ESP32 access point. The submitted screenshots show the connected status indicator, live device readings, a successful scan showing seven nearby 2.4 GHz networks, the device-details page, a populated history chart, recent logs, settings, and the About page.
 
-The photographs and screenshots below are retained as evidence from the hardware session. The screenshots include an earlier version of the connection-status badge, which was corrected afterward; small UI details may therefore differ from the current firmware.
+Values visible in the captured session included 240 MHz CPU frequency, 4 MB flash, a 936 KB firmware image, and the access point at 192.168.4.1. Memory and uptime are live measurements and will naturally differ between runs. These screenshots demonstrate the reported session; they are not a substitute for a repeatable test log or automated hardware test.
+
+**Privacy before publishing screenshots:** blur personal names and every nearby Wi-Fi network name. Do not publish access-point passwords, tokens, serial numbers, or other secrets. Signal strength, channel, and security columns can remain visible if desired.
+
+See the [hardware test report](docs/HARDWARE_TEST_REPORT.md) for the distinction between owner-reported physical testing and automated CI checks.
 
 <details>
 <summary>View dashboard screenshots</summary>
