@@ -122,18 +122,18 @@ A passing build confirms compilation for the configured target; it does not inde
 
 Values visible in the captured session included 240 MHz CPU frequency, 4 MB flash, a 936 KB firmware image, and the access point at 192.168.4.1. Memory and uptime are live measurements and will naturally differ between runs. These screenshots demonstrate the reported session; they are not a substitute for a repeatable test log or automated hardware test.
 
-**Privacy before publishing screenshots:** blur personal names and every nearby Wi-Fi network name. Do not publish access-point passwords, tokens, serial numbers, or other secrets. Signal strength, channel, and security columns can remain visible if desired.
+**Screenshot privacy:** the personal name in the Settings footer and every nearby Wi-Fi network name are blurred in the published gallery. The visible measurements and interface remain as captured. Do not publish access-point passwords, tokens, serial numbers, or other secrets. Signal strength, channel, and security columns can remain visible if desired.
 
 See the [hardware test report](docs/HARDWARE_TEST_REPORT.md) for the distinction between owner-reported physical testing and automated CI checks.
 
 <details>
-<summary>View dashboard screenshots</summary>
+<summary>View privacy-blurred dashboard screenshots</summary>
 
 ### Dashboard
 ![Dashboard with live readings and LED controls](docs/screenshots/01-dashboard.png)
 
 ### Nearby Wi-Fi scan
-![Wi-Fi scan with network names, signal strength, channels, and security](docs/screenshots/02-wifi-scan.png)
+![Wi-Fi scan with every network name blurred while signal strength, channels, and security remain visible](docs/screenshots/02-wifi-scan.png)
 
 ### Device details
 ![Device details and hardware readings](docs/screenshots/03-device-details.png)
@@ -145,7 +145,7 @@ See the [hardware test report](docs/HARDWARE_TEST_REPORT.md) for the distinction
 ![Recent uptime, free-memory, and connected-client samples](docs/screenshots/05-logs.png)
 
 ### Settings
-![Settings page with the restart control](docs/screenshots/06-settings.png)
+![Settings page with the restart control and the author's name blurred in the footer](docs/screenshots/06-settings.png)
 
 ### About
 ![About page describing the project and privacy](docs/screenshots/07-about.png)
