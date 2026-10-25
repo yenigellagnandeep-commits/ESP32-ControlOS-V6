@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a focused improvement to ESP32 ControlOS.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: "Please keep suggestions focused on the ESP32-hosted dashboard and its embedded-device use case."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What need would this feature address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Resource and safety considerations
+      description: Consider RAM, flash, blocking operations, security, and board compatibility.
