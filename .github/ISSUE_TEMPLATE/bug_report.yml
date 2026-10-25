@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible ESP32 ControlOS issue.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include Wi-Fi passwords, access tokens, private network names, or personal information."
+  - type: input
+    id: board
+    attributes:
+      label: Board
+      description: Exact ESP32 board or module, if known.
+      placeholder: ESP32 DevKit V1
+    validations:
+      required: true
+  - type: input
+    id: core
+    attributes:
+      label: Arduino-ESP32 core version
+      placeholder: "3.x.x"
+  - type: input
+    id: commit
+    attributes:
+      label: Firmware commit or release
+      placeholder: Commit SHA or release tag
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reproduce the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      description: Remove credentials, network identifiers, and personal data before posting.
